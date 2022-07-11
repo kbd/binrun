@@ -29,8 +29,8 @@
           "default": "{}",
           "description": "The command template. {} substituted with your script, appended if not present. Fills variables (eg. $workspaceFolder)."
         },
-        "binrun.subFolders": {
-          "title": "Sub folders to search for scripts",
+        "binrun.subDirectories": {
+          "title": "Subdirectories to search for scripts",
           "type": [
             "string"
           ],

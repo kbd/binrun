@@ -2,12 +2,12 @@ import { readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
-const DEFAULT_SUBFOLDERS = ["bin"];
+const DEFAULT_SUBDIRECTORIES = ["bin"];
 
-function getTasks(subfolders: string[]) {
+function getTasks(subdirs: string[]) {
   var tasks: string[][] = [];
   vscode.workspace.workspaceFolders?.forEach((folder) => {
-    subfolders.forEach((sub) => {
+    subdirs.forEach((sub) => {
       const dir = join(folder.uri.fsPath, sub);
       const files = readdirSync(dir);
       files.forEach((path) => tasks.push([sub, path]));
@@ -23,7 +23,8 @@ function makeOpt(subdir: string, file: string) {
 
 function showOptions() {
   const config = vscode.workspace.getConfiguration("binrun");
-  const subFolders = config.get<string[]>("subFolders") || DEFAULT_SUBFOLDERS;
+  const subDirectories =
+    config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
   var commandTemplate = config.get<string>("commandTemplate") || "";
   if (commandTemplate.search("{}") === -1) {
     if (commandTemplate.length > 0 && !commandTemplate.endsWith(" ")) {
@@ -32,7 +33,9 @@ function showOptions() {
     commandTemplate += "{}";
   }
 
-  const options = getTasks(subFolders).map((task) => makeOpt(task[0], task[1]));
+  const options = getTasks(subDirectories).map((task) =>
+    makeOpt(task[0], task[1])
+  );
   vscode.window.showQuickPick(options).then((option) => {
     if (!option || !option.command || option.command.length === 0) {
       return;
