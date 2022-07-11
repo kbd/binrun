@@ -16,7 +16,7 @@ I use the configurable command template to forward the command to [kitty](https:
 This extension contributes the following settings:
 
 * `binrun.commandTemplate`: a string template for each command
-* `binrun.subDirectories`: set to an array of subdirectories ot search
+* `binrun.subDirectories`: set to an array of subdirectories to search
 
 ## Known Issues
 
