@@ -23,6 +23,10 @@ This extension contributes the following settings:
 This is my first extension and I wrote it in one day.
 I still want to add a few features. Feedback welcome!
 
+## Todo
+
+- Package and put on marketplace. For now, build with `vsce package` and install with `code --install-extension ...`
+
 ## Release Notes
 
 ### 0.9.0
