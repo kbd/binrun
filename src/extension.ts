@@ -4,11 +4,9 @@ import * as vscode from "vscode";
 
 const DEFAULT_SUBFOLDERS = ["bin"];
 
-function getTasks() {
+function getTasks(subfolders: string[]) {
   var tasks: string[][] = [];
   vscode.workspace.workspaceFolders?.forEach((folder) => {
-    const subfolders = DEFAULT_SUBFOLDERS; // todo: make config option
-
     subfolders.forEach((sub) => {
       const dir = join(folder.uri.fsPath, sub);
       const files = readdirSync(dir);
@@ -24,14 +22,25 @@ function makeOpt(subdir: string, file: string) {
 }
 
 function showOptions() {
-  var options = getTasks().map((task) => makeOpt(task[0], task[1]));
+  const config = vscode.workspace.getConfiguration("binrun");
+  const subFolders = config.get<string[]>("subFolders") || DEFAULT_SUBFOLDERS;
+  var commandTemplate = config.get<string>("commandTemplate") || "";
+  if (commandTemplate.search("{}") === -1) {
+    if (commandTemplate.length > 0 && !commandTemplate.endsWith(" ")) {
+      commandTemplate += " ";
+    }
+    commandTemplate += "{}";
+  }
+
+  const options = getTasks(subFolders).map((task) => makeOpt(task[0], task[1]));
   vscode.window.showQuickPick(options).then((option) => {
     if (!option || !option.command || option.command.length === 0) {
       return;
     }
-    var term =
-      vscode.window.activeTerminal || vscode.window.createTerminal("binrun");
-    term.sendText(option.command);
+    const w = vscode.window;
+    const term = w.activeTerminal || w.createTerminal("binrun");
+    const command = commandTemplate.replace("{}", option.command);
+    term.sendText(command);
   });
 }
 
@@ -40,5 +49,3 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("binrun.show", showOptions)
   );
 }
-
-export function deactivate() {}

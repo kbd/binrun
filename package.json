@@ -19,7 +19,28 @@
         "command": "binrun.show",
         "title": "binrun: show list of commands"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "binrun",
+      "properties": {
+        "binrun.commandTemplate": {
+          "title": "Command template",
+          "type": "string",
+          "default": "{}",
+          "description": "The command template. {} substituted with your script, appended if not present. Fills variables (eg. $workspaceFolder)."
+        },
+        "binrun.subFolders": {
+          "title": "Sub folders to search for scripts",
+          "type": [
+            "string"
+          ],
+          "default": [
+            "bin"
+          ],
+          "description": "The workspace subdirectories to search for scripts"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
