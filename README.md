@@ -2,6 +2,8 @@
 
 *binrun gives you a pick list of scripts in your workspace to execute*
 
+![screenshot](images/screenshot.png)
+
 ## Features
 
 - Provides a fuzzy pick list to execute scripts in your workspace
