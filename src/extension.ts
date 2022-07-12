@@ -2,6 +2,7 @@ import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
+const EXTNAME = "binrun";
 const DEFAULT_SUBDIRECTORIES = ["bin"];
 
 function getTasks(subdirs: string[]) {
@@ -25,7 +26,7 @@ function makeOpt(subdir: string, file: string) {
 }
 
 function showOptions() {
-  const config = vscode.workspace.getConfiguration("binrun");
+  const config = vscode.workspace.getConfiguration(EXTNAME);
   const subDirectories =
     config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
   var commandTemplate = config.get<string>("commandTemplate") || "";
@@ -44,7 +45,7 @@ function showOptions() {
       return;
     }
     const w = vscode.window;
-    const term = w.activeTerminal || w.createTerminal("binrun");
+    const term = w.activeTerminal || w.createTerminal(EXTNAME);
     const command = commandTemplate.replace("{}", option.command);
     term.sendText(command);
   });
@@ -52,6 +53,6 @@ function showOptions() {
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand("binrun.show", showOptions)
+    vscode.commands.registerCommand(`${EXTNAME}.show`, showOptions)
   );
 }
