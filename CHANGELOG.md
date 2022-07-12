@@ -7,3 +7,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [0.9.0]
 
 - Initial release
+
+## [0.9.1]
+
+- bug fixes
+- First published version
