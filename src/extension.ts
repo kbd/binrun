@@ -1,4 +1,4 @@
-import { readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
@@ -9,6 +9,9 @@ function getTasks(subdirs: string[]) {
   vscode.workspace.workspaceFolders?.forEach((folder) => {
     subdirs.forEach((sub) => {
       const dir = join(folder.uri.fsPath, sub);
+      if (!existsSync(dir)) {
+        return;
+      }
       const files = readdirSync(dir);
       files.forEach((path) => tasks.push([sub, path]));
     });
