@@ -9,6 +9,7 @@ const PREVIOUS = "previous";
 var CONTEXT: vscode.ExtensionContext;
 
 interface Item extends vscode.QuickPickItem {
+  path: string;
   command: string;
 }
 
@@ -29,8 +30,12 @@ function getTasks(subdirs: string[]) {
 
 function makeOpt(subdir: string, file: string, template: string): Item {
   const path = join(subdir, file);
-  const command = template.replace("{}", path);
-  return { label: file, description: `execute '${path}'`, command: command };
+  return {
+    label: file,
+    description: path,
+    path: path,
+    command: template.replace("{}", path),
+  };
 }
 
 function executeItem(item: vscode.QuickPickItem | undefined) {
@@ -41,7 +46,7 @@ function executeItem(item: vscode.QuickPickItem | undefined) {
   const w = vscode.window;
   const term = w.activeTerminal || w.createTerminal(EXTNAME);
   term.sendText(i.command);
-  CONTEXT.workspaceState.update(PREVIOUS, i.label);
+  CONTEXT.workspaceState.update(PREVIOUS, i.path);
 }
 
 function sep(label: string): vscode.QuickPickItem {
@@ -51,7 +56,7 @@ function sep(label: string): vscode.QuickPickItem {
 function showMenu(items: vscode.QuickPickItem[], previous: string | undefined) {
   if (previous) {
     // if something exists with the previous label, also put it first
-    const prev = items.find((i) => i.label === previous);
+    const prev = items.find((i) => (i as Item).path === previous);
     if (prev) {
       items = [sep("Recently executed"), prev, sep("")].concat(items);
     }
