@@ -1,9 +1,5 @@
 # Change Log
 
-All notable changes to the "binrun" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
 ## [0.9.0]
 
 - Initial release
@@ -17,3 +13,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Add "recently executed"
 - Add separators for each directory's commands
+
+## [0.9.3]
+
+- Filter out non-executables
+- show icon for previously executed
+- refactor a bit

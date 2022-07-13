@@ -45,17 +45,6 @@ If you change the directory of your terminal away from your workspace it won't b
 - write tests :)
 - suggestions?
 
-## Release Notes
+## Changelog
 
-### 0.9.0
-
-First released version.
-
-### 0.9.1
-
-First published version.
-
-### 0.9.2
-
-- Add "recently executed"
-- Add separators for each directory's commands
+See [Changelog](./CHANGELOG.md)

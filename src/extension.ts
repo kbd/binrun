@@ -98,6 +98,7 @@ function show() {
     // if something exists with the previous label, also put it first
     const prev = items.find((i) => (i as Item).path === previous);
     if (prev) {
+      prev.label = `$(play-circle) ${prev.label}`;
       items = [sep("Recently executed"), prev].concat(items);
     }
   }
