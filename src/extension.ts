@@ -70,17 +70,6 @@ function sep(label: string): vscode.QuickPickItem {
   return { label: label, kind: vscode.QuickPickItemKind.Separator };
 }
 
-function showMenu(items: vscode.QuickPickItem[], previous: string | undefined) {
-  if (previous) {
-    // if something exists with the previous label, also put it first
-    const prev = items.find((i) => (i as Item).path === previous);
-    if (prev) {
-      items = [sep("Recently executed"), prev].concat(items);
-    }
-  }
-  vscode.window.showQuickPick(items).then(executeItem);
-}
-
 function show() {
   const config = vscode.workspace.getConfiguration(EXTNAME);
   const subdirs =
@@ -93,7 +82,7 @@ function show() {
     template += "{}";
   }
 
-  const items: vscode.QuickPickItem[] = [];
+  var items: vscode.QuickPickItem[] = [];
   getDirPaths(subdirs).forEach((paths, subdir) => {
     if (paths.length === 0) {
       return;
@@ -103,8 +92,17 @@ function show() {
       items.push(makeOpt(subdir, path, template));
     });
   });
+
   const previous = CONTEXT.workspaceState.get<string>(PREVIOUS);
-  showMenu(items, previous);
+  if (previous) {
+    // if something exists with the previous label, also put it first
+    const prev = items.find((i) => (i as Item).path === previous);
+    if (prev) {
+      items = [sep("Recently executed"), prev].concat(items);
+    }
+  }
+
+  vscode.window.showQuickPick(items).then(executeItem);
 }
 
 export function activate(context: vscode.ExtensionContext) {
