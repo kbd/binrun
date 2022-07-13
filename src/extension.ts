@@ -4,6 +4,9 @@ import * as vscode from "vscode";
 
 const EXTNAME = "binrun";
 const DEFAULT_SUBDIRECTORIES = ["bin"];
+const PREVIOUS = "previous";
+
+var CONTEXT: vscode.ExtensionContext;
 
 interface Item extends vscode.QuickPickItem {
   command: string;
@@ -24,21 +27,36 @@ function getTasks(subdirs: string[]) {
   return tasks;
 }
 
-function makeOpt(subdir: string, file: string): Item {
+function makeOpt(subdir: string, file: string, template: string): Item {
   const path = join(subdir, file);
-  return { label: file, description: `execute '${path}'`, command: path };
+  const command = template.replace("{}", path);
+  return { label: file, description: `execute '${path}'`, command: command };
 }
 
-function showMenu(items: Item[], template: string) {
-  vscode.window.showQuickPick(items).then((item) => {
-    if (!item || !item.command || item.command.length === 0) {
-      return;
+function executeItem(item: vscode.QuickPickItem | undefined) {
+  const i = item as Item;
+  if (!i || !i.command || i.command.length === 0) {
+    return;
+  }
+  const w = vscode.window;
+  const term = w.activeTerminal || w.createTerminal(EXTNAME);
+  term.sendText(i.command);
+  CONTEXT.workspaceState.update(PREVIOUS, i.label);
+}
+
+function sep(label: string): vscode.QuickPickItem {
+  return { label: label, kind: vscode.QuickPickItemKind.Separator };
+}
+
+function showMenu(items: vscode.QuickPickItem[], previous: string | undefined) {
+  if (previous) {
+    // if something exists with the previous label, also put it first
+    const prev = items.find((i) => i.label === previous);
+    if (prev) {
+      items = [sep("Recently executed"), prev, sep("")].concat(items);
     }
-    const w = vscode.window;
-    const term = w.activeTerminal || w.createTerminal(EXTNAME);
-    const command = template.replace("{}", item.command);
-    term.sendText(command);
-  });
+  }
+  vscode.window.showQuickPick(items).then(executeItem);
 }
 
 function show() {
@@ -53,11 +71,13 @@ function show() {
     template += "{}";
   }
 
-  const items = getTasks(subdirs).map((t) => makeOpt(t[0], t[1]));
-  showMenu(items, template);
+  const items = getTasks(subdirs).map((t) => makeOpt(t[0], t[1], template));
+  const previous = CONTEXT.workspaceState.get<string>(PREVIOUS);
+  showMenu(items, previous);
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  CONTEXT = context;
   context.subscriptions.push(
     vscode.commands.registerCommand(`${EXTNAME}.show`, show)
   );

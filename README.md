@@ -38,12 +38,10 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-This is my first extension and I wrote it in one day.
-I still want to add a few features. Feedback welcome!
+If you change the directory of your terminal away from your workspace it won't be able to run your scripts.
 
 ## Todo
 
-- show your most-recently executed task on top, so it's keybind+enter
 - write tests :)
 - suggestions?
 
@@ -56,3 +54,7 @@ First released version.
 ### 0.9.1
 
 First published version.
+
+### 0.9.2
+
+Add "recently executed"

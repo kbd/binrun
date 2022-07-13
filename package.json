@@ -6,7 +6,7 @@
   },
   "displayName": "binrun",
   "description": "Choose from list of scripts in your workspace to run",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/kbd/binrun.git"
