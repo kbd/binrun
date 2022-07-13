@@ -1,5 +1,5 @@
-import { existsSync, readdirSync } from "fs";
-import { join } from "path";
+import { accessSync, constants, existsSync, readdirSync } from "fs";
+import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
 
 const EXTNAME = "binrun";
@@ -14,29 +14,44 @@ interface Item extends vscode.QuickPickItem {
   command: string;
 }
 
-function getTasks(subdirs: string[]) {
-  var tasks: string[][] = [];
+function isValid(path: string): boolean {
+  try {
+    // why this api from accessSync?
+    accessSync(path, constants.X_OK);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function getDirPaths(subdirs: string[]): Map<string, string[]> {
+  const pathsByDir = new Map<string, string[]>();
   vscode.workspace.workspaceFolders?.forEach((folder) => {
     subdirs.forEach((sub) => {
       const dir = join(folder.uri.fsPath, sub);
       if (!existsSync(dir)) {
         return;
       }
-      const files = readdirSync(dir);
-      files.forEach((path) => tasks.push([sub, path]));
+      pathsByDir.set(
+        sub,
+        readdirSync(dir)
+          .map((path) => join(dir, path))
+          .filter(isValid)
+      );
     });
   });
-  return tasks;
+  return pathsByDir;
 }
 
-function makeOpt(subdir: string, file: string, template: string): Item {
-  const path = join(subdir, file);
+function makeOpt(subdir: string, path: string, template: string): Item {
+  const file = basename(path);
+  const relative = join(subdir, file);
   return {
     label: file,
-    description: path,
+    description: relative,
     path: path,
-    dir: subdir,
-    command: template.replace("{}", path),
+    dir: dirname(path),
+    command: template.replace("{}", relative),
   };
 }
 
@@ -56,15 +71,6 @@ function sep(label: string): vscode.QuickPickItem {
 }
 
 function showMenu(items: vscode.QuickPickItem[], previous: string | undefined) {
-  // label each group of commands by directory
-  var prevDir = "";
-  for (var i = 0; i < items.length; i++) {
-    const item = items[i] as Item;
-    if (item.dir !== prevDir) {
-      items.splice(i, 0, sep(item.dir));
-      prevDir = item.dir;
-    }
-  }
   if (previous) {
     // if something exists with the previous label, also put it first
     const prev = items.find((i) => (i as Item).path === previous);
@@ -87,7 +93,16 @@ function show() {
     template += "{}";
   }
 
-  const items = getTasks(subdirs).map((t) => makeOpt(t[0], t[1], template));
+  const items: vscode.QuickPickItem[] = [];
+  getDirPaths(subdirs).forEach((paths, subdir) => {
+    if (paths.length === 0) {
+      return;
+    }
+    items.push(sep(subdir));
+    paths.forEach((path) => {
+      items.push(makeOpt(subdir, path, template));
+    });
+  });
   const previous = CONTEXT.workspaceState.get<string>(PREVIOUS);
   showMenu(items, previous);
 }
