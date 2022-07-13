@@ -10,6 +10,7 @@ var CONTEXT: vscode.ExtensionContext;
 
 interface Item extends vscode.QuickPickItem {
   path: string;
+  dir: string;
   command: string;
 }
 
@@ -34,6 +35,7 @@ function makeOpt(subdir: string, file: string, template: string): Item {
     label: file,
     description: path,
     path: path,
+    dir: subdir,
     command: template.replace("{}", path),
   };
 }
@@ -54,11 +56,20 @@ function sep(label: string): vscode.QuickPickItem {
 }
 
 function showMenu(items: vscode.QuickPickItem[], previous: string | undefined) {
+  // label each group of commands by directory
+  var prevDir = "";
+  for (var i = 0; i < items.length; i++) {
+    const item = items[i] as Item;
+    if (item.dir !== prevDir) {
+      items.splice(i, 0, sep(item.dir));
+      prevDir = item.dir;
+    }
+  }
   if (previous) {
     // if something exists with the previous label, also put it first
     const prev = items.find((i) => (i as Item).path === previous);
     if (prev) {
-      items = [sep("Recently executed"), prev, sep("")].concat(items);
+      items = [sep("Recently executed"), prev].concat(items);
     }
   }
   vscode.window.showQuickPick(items).then(executeItem);
