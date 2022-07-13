@@ -57,4 +57,5 @@ First published version.
 
 ### 0.9.2
 
-Add "recently executed"
+- Add "recently executed"
+- Add separators for each directory's commands

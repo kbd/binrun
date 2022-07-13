@@ -12,3 +12,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - bug fixes
 - First published version
+
+## [0.9.2]
+
+- Add "recently executed"
+- Add separators for each directory's commands
