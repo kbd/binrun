@@ -5,6 +5,10 @@ import * as vscode from "vscode";
 const EXTNAME = "binrun";
 const DEFAULT_SUBDIRECTORIES = ["bin"];
 
+interface Item extends vscode.QuickPickItem {
+  command: string;
+}
+
 function getTasks(subdirs: string[]) {
   var tasks: string[][] = [];
   vscode.workspace.workspaceFolders?.forEach((folder) => {
@@ -20,39 +24,41 @@ function getTasks(subdirs: string[]) {
   return tasks;
 }
 
-function makeOpt(subdir: string, file: string) {
+function makeOpt(subdir: string, file: string): Item {
   const path = join(subdir, file);
   return { label: file, description: `execute '${path}'`, command: path };
 }
 
-function showOptions() {
-  const config = vscode.workspace.getConfiguration(EXTNAME);
-  const subDirectories =
-    config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
-  var commandTemplate = config.get<string>("commandTemplate") || "";
-  if (commandTemplate.search("{}") === -1) {
-    if (commandTemplate.length > 0 && !commandTemplate.endsWith(" ")) {
-      commandTemplate += " ";
-    }
-    commandTemplate += "{}";
-  }
-
-  const options = getTasks(subDirectories).map((task) =>
-    makeOpt(task[0], task[1])
-  );
-  vscode.window.showQuickPick(options).then((option) => {
-    if (!option || !option.command || option.command.length === 0) {
+function showMenu(items: Item[], template: string) {
+  vscode.window.showQuickPick(items).then((item) => {
+    if (!item || !item.command || item.command.length === 0) {
       return;
     }
     const w = vscode.window;
     const term = w.activeTerminal || w.createTerminal(EXTNAME);
-    const command = commandTemplate.replace("{}", option.command);
+    const command = template.replace("{}", item.command);
     term.sendText(command);
   });
 }
 
+function show() {
+  const config = vscode.workspace.getConfiguration(EXTNAME);
+  const subdirs =
+    config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
+  var template = config.get<string>("commandTemplate") || "";
+  if (template.search("{}") === -1) {
+    if (template.length > 0 && !template.endsWith(" ")) {
+      template += " ";
+    }
+    template += "{}";
+  }
+
+  const items = getTasks(subdirs).map((t) => makeOpt(t[0], t[1]));
+  showMenu(items, template);
+}
+
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand(`${EXTNAME}.show`, showOptions)
+    vscode.commands.registerCommand(`${EXTNAME}.show`, show)
   );
 }
