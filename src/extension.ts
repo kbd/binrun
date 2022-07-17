@@ -70,7 +70,30 @@ function sep(label: string): vscode.QuickPickItem {
   return { label: label, kind: vscode.QuickPickItemKind.Separator };
 }
 
+
+function makeQuickPick(items) {
+  const quickPick = vscode.window.createQuickPick();
+  quickPick.title = EXTNAME
+
+  quickPick.items = items;
+  quickPick.onDidChangeValue(() => {
+      // INJECT user values into proposed values
+      if (!choices.includes(quickPick.value)) quickPick.items = [quickPick.value, ...choices].map(label => ({ label }))
+  })
+
+  quickPick.onDidAccept(() => {
+      const selection = quickPick.activeItems[0]
+      resolve(selection.label)
+      quickPick.hide()
+  })
+  quickPick.show();
+})
+}
+
+
+
 function show() {
+  // read configuration
   const config = vscode.workspace.getConfiguration(EXTNAME);
   const subdirs =
     config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
@@ -82,6 +105,7 @@ function show() {
     template += "{}";
   }
 
+  // create quick pick items for all directories
   var items: vscode.QuickPickItem[] = [];
   getDirPaths(subdirs).forEach((paths, subdir) => {
     if (paths.length === 0) {
@@ -93,6 +117,7 @@ function show() {
     });
   });
 
+  // label the previous choice if it exists in the options
   const previous = CONTEXT.workspaceState.get<string>(PREVIOUS);
   if (previous) {
     // if something exists with the previous label, also put it first
@@ -103,6 +128,7 @@ function show() {
     }
   }
 
+  // do the thing
   vscode.window.showQuickPick(items).then(executeItem);
 }
 
