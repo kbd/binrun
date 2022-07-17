@@ -19,3 +19,7 @@
 - Filter out non-executables
 - show icon for previously executed
 - refactor a bit
+
+## before 1.0
+
+Deploy to marketplace from CI upon tagging a version?
