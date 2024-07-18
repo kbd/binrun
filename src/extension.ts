@@ -82,6 +82,7 @@ function makeJustOpt(name: string, doc: string, template: string): Item {
   return makeOpt(name, doc, name, name, cmd);
 }
 
+// make a generic menu option
 function makeOpt(label: string, desc: string, path: string, dir: string, cmd: string) {
   return { label: label, description: desc, path: path, dir: dir, command: cmd };
 }
@@ -103,21 +104,24 @@ function sep(label: string): vscode.QuickPickItem {
   return { label: label, kind: vscode.QuickPickItemKind.Separator };
 }
 
-// show the quick pick
-function show() {
-  const config = vscode.workspace.getConfiguration(EXTNAME);
-  const subdirs = config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
-
-  // configure the command template
-  var template = config.get<string>("commandTemplate") || "";
+// retrieve the command template
+function getCommandTemplate(config: vscode.WorkspaceConfiguration): string {
+  let template = config.get<string>("commandTemplate") || "";
   if (template.search("{}") === -1) {
     if (template.length > 0 && !template.endsWith(" ")) {
       template += " ";
     }
     template += "{}";
   }
+  return template;
+}
 
-  var items: vscode.QuickPickItem[] = [];
+// show the quick pick
+function show() {
+  const config = vscode.workspace.getConfiguration(EXTNAME);
+  const subdirs = config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
+  const template = getCommandTemplate(config);
+  let items: vscode.QuickPickItem[] = [];
 
   // generate the quick pick items from subdirs
   getDirPaths(subdirs).forEach((paths, subdir) => {
@@ -139,6 +143,7 @@ function show() {
     });
   }
 
+  // handle the previously selected item
   const previous = CONTEXT.workspaceState.get<string>(PREVIOUS);
   if (previous) {
     // if something exists with the previous label, also put it first
@@ -149,6 +154,7 @@ function show() {
     }
   }
 
+  // show it and execute the result
   vscode.window.showQuickPick(items).then(executeItem);
 }
 
