@@ -19,3 +19,7 @@
 - Filter out non-executables
 - show icon for previously executed
 - refactor a bit
+
+## [0.9.4]
+
+- Support listing Just recipes
