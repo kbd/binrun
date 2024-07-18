@@ -17,9 +17,6 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:binrun.show"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -59,7 +56,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.69.0",
+    "@types/vscode": "^1.75.0",
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "16.x",

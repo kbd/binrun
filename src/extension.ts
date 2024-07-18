@@ -1,5 +1,5 @@
+import { execFileSync } from "child_process";
 import { accessSync, constants, existsSync, readdirSync } from "fs";
-import { exec } from "node:child_process";
 import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
 
@@ -51,62 +51,43 @@ function getJustRecipes(): any[] {
   // execute just --unstable --dump --dump-format=json
   // parse the json output, get .recipes{.name,.doc}
   let recipes: any[] = [];
-  const cmd =
-    "just --justfile=/Users/kbd/proj/binrun/justfile --unstable --dump --dump-format=json";
-  console.log(`cmd: ${cmd}`);
+  const cmd = "just";
+  const cmdArgs = ["--dump", "--dump-format=json"];
 
-  exec("echo hello", (error, stdout, stderr) => {
-    console.log("stdout: " + stdout);
-    console.log("stderr: " + stderr);
-    if (error !== null) {
-      console.log("exec error: " + error);
-    }
-  });
-
-  exec(cmd, (error, stdout, stderr) => {
+  try {
+    // 'any' because getting 'no overload matches' for callArgs
+    const callArgs: any = {
+      stdio: "pipe",
+      encoding: "utf8",
+      cwd: vscode.workspace.workspaceFolders?.[0].uri.fsPath,
+    };
+    const stdout = execFileSync(cmd, cmdArgs, callArgs);
     // todo: way to distinguish between "no justfile in this project" and
     // an invalid justfile (to show an error in the picker)?
-    console.log(
-      `error is: ${error}, stdout is: ${stdout}, stderr is: ${stderr}`
-    );
-
-    // if (!error && stdout) {
-    //   let output = JSON.parse(stdout);
-    //   console.log(`output.recipes is: ${output["recipes"]}`);
-    //   Object.values(output["recipes"]).forEach((recipe: any) => {
-    //     console.log(`Got recipe: ${recipe}`);
-    //     recipes.push([{ name: recipe["name"], doc: recipe["doc"] }]);
-    //     console.table(recipes);
-    //   });
-    // }
-  });
-  console.log("Recipes:");
-  console.table(recipes);
+    const output = JSON.parse(stdout);
+    Object.values(output["recipes"]).forEach((recipe: any) => {
+      recipes.push({ name: recipe["name"], doc: recipe["doc"] });
+    });
+  } catch (err) {
+    console.error(`Couldn't get just recipes: ${err}`);
+  }
   return recipes;
 }
 
 // make a menu option
-function makeOpt(subdir: string, path: string, template: string): Item {
+function makeBinOpt(subdir: string, path: string, template: string): Item {
   const file = basename(path);
   const relative = join(subdir, file);
-  return {
-    label: file,
-    description: relative,
-    path: path,
-    dir: dirname(path),
-    command: template.replace("{}", relative),
-  };
+  return makeOpt(file, relative, path, dirname(path), template.replace("{}", relative));
 }
 
 // make just menu option
-function makeJustOpt(name: string, doc: string): Item {
-  return {
-    label: name,
-    description: doc,
-    path: name,
-    dir: name,
-    command: `just ${name}`,
-  };
+function makeJustOpt(name: string, doc: string, template: string): Item {
+  return makeOpt(name, doc, name, name, template.replace("{}", `just ${name}`));
+}
+
+function makeOpt(label: string, desc: string, path: string, dir: string, cmd: string) {
+  return { label: label, description: desc, path: path, dir: dir, command: cmd };
 }
 
 // execute the chosen item
@@ -129,8 +110,7 @@ function sep(label: string): vscode.QuickPickItem {
 // show the quick pick
 function show() {
   const config = vscode.workspace.getConfiguration(EXTNAME);
-  const subdirs =
-    config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
+  const subdirs = config.get<string[]>("subDirectories") || DEFAULT_SUBDIRECTORIES;
 
   // configure the command template
   var template = config.get<string>("commandTemplate") || "";
@@ -150,18 +130,16 @@ function show() {
     }
     items.push(sep(subdir));
     paths.forEach((path) => {
-      items.push(makeOpt(subdir, path, template));
+      items.push(makeBinOpt(subdir, path, template));
     });
   });
 
   // generate the quick pick items from just
-  let recipes = getJustRecipes();
-  console.log("Got just recipes:");
-  console.table(recipes);
+  const recipes = getJustRecipes();
   if (recipes.length > 0) {
     items.push(sep("just"));
-    recipes.forEach(([name, doc]) => {
-      items.push(makeJustOpt(name, doc));
+    recipes.forEach(({ name: name, doc: doc }) => {
+      items.push(makeJustOpt(name, doc, template));
     });
   }
 
@@ -181,7 +159,5 @@ function show() {
 // activate the extension
 export function activate(context: vscode.ExtensionContext) {
   CONTEXT = context;
-  context.subscriptions.push(
-    vscode.commands.registerCommand(`${EXTNAME}.show`, show)
-  );
+  context.subscriptions.push(vscode.commands.registerCommand(`${EXTNAME}.show`, show));
 }
