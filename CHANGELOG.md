@@ -22,4 +22,4 @@
 
 ## [0.9.4]
 
-- Support listing Just recipes
+- Support listing [Just](https://github.com/casey/just) recipes
