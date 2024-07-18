@@ -48,20 +48,14 @@ function getDirPaths(subdirs: string[]): Map<string, string[]> {
 
 // get just recipes as an array of tuples of (name, doc)
 function getJustRecipes(): any[] {
-  // execute just --unstable --dump --dump-format=json
-  // parse the json output, get .recipes{.name,.doc}
   let recipes: any[] = [];
   const cmd = "just";
   const cmdArgs = ["--dump", "--dump-format=json"];
-
   try {
-    // 'any' because getting 'no overload matches' for callArgs
-    const callArgs: any = {
-      stdio: "pipe",
-      encoding: "utf8",
-      cwd: vscode.workspace.workspaceFolders?.[0].uri.fsPath,
-    };
-    const stdout = execFileSync(cmd, cmdArgs, callArgs);
+    // 'any' because getting 'no overload matches' for execArgs
+    const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+    const execArgs: any = { stdio: "pipe", encoding: "utf8", cwd: cwd };
+    const stdout = execFileSync(cmd, cmdArgs, execArgs);
     // todo: way to distinguish between "no justfile in this project" and
     // an invalid justfile (to show an error in the picker)?
     const output = JSON.parse(stdout);
@@ -78,12 +72,14 @@ function getJustRecipes(): any[] {
 function makeBinOpt(subdir: string, path: string, template: string): Item {
   const file = basename(path);
   const relative = join(subdir, file);
-  return makeOpt(file, relative, path, dirname(path), template.replace("{}", relative));
+  const cmd = template.replace("{}", relative);
+  return makeOpt(file, relative, path, dirname(path), cmd);
 }
 
 // make just menu option
 function makeJustOpt(name: string, doc: string, template: string): Item {
-  return makeOpt(name, doc, name, name, template.replace("{}", `just ${name}`));
+  const cmd = template.replace("{}", `just ${name}`);
+  return makeOpt(name, doc, name, name, cmd);
 }
 
 function makeOpt(label: string, desc: string, path: string, dir: string, cmd: string) {
