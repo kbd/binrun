@@ -46,7 +46,7 @@ function getDirPaths(subdirs: string[]): Map<string, string[]> {
   return pathsByDir;
 }
 
-// get just recipes as an array of tuples of (name, doc)
+// get just recipes as an array of dicts with {name:, doc:}
 function getJustRecipes(): any[] {
   let recipes: any[] = [];
   const cmd = "just";
