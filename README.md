@@ -10,7 +10,7 @@
 - Searches `./bin` (user-configurable)
 - Executes the command in the integrated terminal
 - Configurable command template
-- Supports [Just] recipes
+- Supports [Just](https://github.com/casey/just) recipes
 
 I use the configurable command template to forward the command to [kitty](https://sw.kovidgoyal.net/kitty/) so I can launch commands in my terminal-of-choice.
 
